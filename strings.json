@@ -1,0 +1,14 @@
+{
+    "btn": {
+        "shield_4h": "Shield 4h",
+        "shield_8h": "Shield 8h",
+        "shield_24h": "Shield 24h",
+        "shield_3d": "Shield 3d",
+        "shield_7d": "Shield 7d",
+        "shield_14d": "Shield 14d",
+        "shield_reset": "Reset active shield"
+    },
+    "msg": {
+        "start": "Hi, **{0}**!\n\nUse keyboard shown to you if you want to set your active shield time.\n\nYou can also use /shield command to set non-standart time in format `/shield DAYS HOURS MINUTES`."
+    }
+}

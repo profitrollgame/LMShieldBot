@@ -29,34 +29,7 @@ def start(app, msg):
 
     app.send_chat_action(chat_id=msg.chat.id, action="typing")
 
-    keyboard_markup = defaultKeyboard(msg.from_user.id)
-
-    if msg.from_user.id in configGet("admins"):
-        msg.reply_text(locale("start_admin", "msg").format(from_user.first_name), reply_markup=keyboard_markup)
-    else:
-        msg.reply_text(locale("start", "msg").format(from_user.first_name), reply_markup=keyboard_markup)
-
-    if f"{from_user.id}.json" not in os.listdir("data/users/"):
-        userSave(
-            from_user.id,
-            from_user.first_name,
-            from_user.last_name,
-            from_user.username,
-            from_user.phone_number,
-            from_user.language_code
-        )
-        jsonSave(
-            f"data/users/{from_user.id}.json",
-            {"context": {"action": None, "data": None}}
-        )
-    
-    if from_user.id not in configGet("admins"):
-        with open('data/users.txt', 'r', encoding='utf-8') as f:
-            if str(msg.from_user.id) not in f.read():
-                f.close()
-                with open('data/users.txt', 'a', encoding='utf-8') as f:
-                    f.write(str(msg.from_user.id)+"\n")
-                    f.close()
+    msg.reply_text(locale("start", "msg").format(from_user.first_name), reply_markup=defaultKeyboard())
 
 #===========================================================================================================================
 
