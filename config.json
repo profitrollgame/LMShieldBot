@@ -1,0 +1,28 @@
+{
+    "buyer_id": 444721009,
+    "admins": [
+        277862475,
+        444721009
+    ],
+    "payment": {
+        "hosted": true,
+        "day": 15,
+        "amount": 200,
+        "cardnumber": 5375414129532742,
+        "comment": "Бот KinoFilmTime",
+        "link": "https://send.monobank.ua/DfuZchV8z?amount={0}?text={1}",
+        "direct": {
+            "iban": "UA173220010000026200316239467",
+            "receiver": "Кулешов Костянтин Олегович",
+            "itn": "3832704615",
+            "reason": "Поповнення рахунку"
+        }
+    },
+    "channels": [
+        {
+            "name": "🍿Фильмы|Сериалы|Попкорн🍿",
+            "id": "kinonewstimes",
+            "link": "https://t.me/+w2lyzGJdelo0Yzk6"
+        }
+    ]
+}
