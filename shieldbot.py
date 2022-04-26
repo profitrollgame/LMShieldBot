@@ -1,3 +1,7 @@
+import asyncio
+from datetime import datetime
+from datetime import timedelta
+from pathlib import Path
 from distutils.command.config import config
 import os
 from random import random
@@ -11,6 +15,7 @@ import schedule
 
 from telegram import ForceReply
 from functions import *
+from timeformat import strfdelta
 from pyrogram import Client, filters, idle
 from pyrogram import errors
 from pyrogram.errors import FloodWait
@@ -20,11 +25,110 @@ from pyrogram.types import ChatPermissions, ReplyKeyboardMarkup, InlineKeyboardM
 pid = os.getpid()
 app = Client("LordsMobile_Shield_Bot")
 
+def nowStamp():
+    return int(datetime.timestamp(datetime.now()))
+
+def reminderAdd(userid, intime):
+    reminders = jsonLoad("data/reminders.json")
+    reminders_index = jsonLoad("data/reminders_index.json")
+
+    if str(userid) not in reminders_index:
+        reminders_index[str(userid)] = []
+
+    if str(intime) not in reminders:
+        reminders[str(intime)] = []
+
+    if not isinstance(reminders_index[str(userid)], list):
+        reminders_index[str(userid)] = []
+    reminders_index[str(userid)].append(intime)
+
+    if not isinstance(reminders[str(intime)], list):
+        reminders[str(intime)] = []
+    reminders[str(intime)].append(userid)
+
+    jsonSave("data/reminders.json", reminders)
+    jsonSave("data/reminders_index.json", reminders_index)
+
+def reminderReset(userid):
+    shields = jsonLoad("data/shields.json")
+    reminders = jsonLoad("data/reminders.json")
+    reminders_index = jsonLoad("data/reminders_index.json")
+
+    if str(userGet(userid, "shield")) in shields:
+        del shields[str(userGet(userid, "shield"))]
+
+    if str(userid) in reminders_index:
+        for ts in reminders_index[str(userid)]:
+            reminders[str(ts)].remove(userid)
+            if reminders[str(ts)] == []:
+                del reminders[str(ts)]
+    
+    if str(userid) in reminders_index:
+        del reminders_index[str(userid)]
+
+    jsonSave("data/shields.json", shields)
+    jsonSave("data/reminders.json", reminders)
+    jsonSave("data/reminders_index.json", reminders_index)
+
+    userSet(userid, "active", False)
+    userSet(userid, "shield", None)
+
+
+async def reminderSend(userid, message, expired=False):
+    global app
+    if expired:
+        await app.send_message(userid, message, reply_markup=defaultKeyboard(userid))
+    else:
+        await app.send_message(userid, message)
+
 def remind_shields():
 
-    global app
+    while True:
 
-    
+        shields = jsonLoad("data/shields.json")
+        #shields_original = jsonLoad("data/shields.json")
+
+        reminders = jsonLoad("data/reminders.json")
+        #reminders_original = jsonLoad("data/reminders.json")
+
+        reminders_index = jsonLoad("data/reminders_index.json")
+        #reminders_index_original = jsonLoad("data/reminders_index.json")
+
+        now_time = nowStamp()
+
+        if str(now_time) in shields:
+            for user in shields[str(now_time)]:
+                asyncio.run(reminderSend(user, locale("expired", "msg", user), expired=True))
+                reminderReset(user)
+
+        if str(now_time) in reminders:
+            for user in reminders[str(now_time)]:
+                asyncio.run(reminderSend( user, locale("expiring", "msg", userid=user).format(strfdelta(userGet(user, "shield")-nowStamp(), locale("expiring_format", "msg", userid=user), inputtype="seconds")) ))
+                reminders[str(now_time)].remove(user)
+                reminders_index[str(user)].remove(now_time)
+                jsonSave("data/reminders.json", reminders)
+                jsonSave("data/reminders_index.json", reminders)
+        
+        # if reminders != reminders_original:
+        #     jsonSave("data/reminders.json", reminders)
+
+        # if reminders_index != reminders_index_original:
+        #     jsonSave("data/reminders_index.json", reminders)
+        
+        #print(now_time)
+        time.sleep(1)
+
+def shieldSet(userid, intime):
+    userSet(userid, "active", True)
+    userSet(userid, "shield", nowStamp()+intime)
+    for remtime in configGet("reminders"):
+        if intime > remtime:
+            reminderAdd(userid, nowStamp()+intime-remtime)
+    shields = jsonLoad("data/shields.json")
+    if str(nowStamp()+intime) not in shields:
+        shields[str(nowStamp()+intime)] = []
+    shields[str(nowStamp()+intime)].append(userid)
+    jsonSave("data/shields.json", shields)
 
 #===========================================================================================================================
 
@@ -53,6 +157,29 @@ def start(app, msg):
     if send_msg:
         msg.reply_text(locale("translation", "msg", userid=from_user.id))
 
+@app.on_message(~ filters.scheduled & filters.command(["locale"], prefixes="/"))
+def locale_set(app, msg):
+
+    from_user = msg.from_user
+
+    try:
+        fullcmd = msg.text.split()
+        if fullcmd[1] in jsonLoad("strings.json"):
+            userSet(from_user.id, "locale", fullcmd[1])
+            if userGet(from_user.id, "active"):
+                msg.reply_text(locale("locale_set", "msg", userid=from_user.id), reply_markup=activeKeyboard(userid=from_user.id))
+            else:
+                msg.reply_text(locale("locale_set", "msg", userid=from_user.id), reply_markup=defaultKeyboard(userid=from_user.id))
+        else:
+            locale_list = []
+            locales = jsonLoad("strings.json")
+            for loc in locales:
+                locale_list.append(f"`{loc}`")
+            msg.reply_text(locale("locale_wrong", "msg", userid=from_user.id).format(", ".join(locale_list)))
+    except:
+        traceback.print_exc()
+        msg.reply_text(locale("locale_syntax", "msg", userid=from_user.id))
+
 #===========================================================================================================================
 
 @app.on_message(~ filters.scheduled & filters.command(locale("shield_4h", "btn", userid="all"), prefixes=""))
@@ -66,15 +193,112 @@ def shield_4h(app, msg):
 
         userSet(from_user.id, "active", True)
 
-        msg.reply_text("Henlo", reply_markup=activeKeyboard(userid=from_user.id))
+        shieldSet(from_user.id, 4*60*60)
+
+        msg.reply_text(locale("shield_4h", "shi", userid=from_user.id), reply_markup=activeKeyboard(userid=from_user.id))
 
     else:
 
-        msg.reply_text("Shield already active")
+        msg.reply_text(locale("already_active", "msg", userid=from_user.id))
+
+@app.on_message(~ filters.scheduled & filters.command(locale("shield_8h", "btn", userid="all"), prefixes=""))
+def shield_8h(app, msg):
+
+    from_user = msg.from_user
+
+    app.send_chat_action(chat_id=msg.chat.id, action="typing")
+
+    if not userGet(from_user.id, "active"):
+
+        userSet(from_user.id, "active", True)
+
+        shieldSet(from_user.id, 8*60*60)
+
+        msg.reply_text(locale("shield_8h", "shi", userid=from_user.id), reply_markup=activeKeyboard(userid=from_user.id))
+
+    else:
+
+        msg.reply_text(locale("already_active", "msg", userid=from_user.id))
+
+@app.on_message(~ filters.scheduled & filters.command(locale("shield_24h", "btn", userid="all"), prefixes=""))
+def shield_24h(app, msg):
+
+    from_user = msg.from_user
+
+    app.send_chat_action(chat_id=msg.chat.id, action="typing")
+
+    if not userGet(from_user.id, "active"):
+
+        userSet(from_user.id, "active", True)
+
+        shieldSet(from_user.id, 24*60*60)
+
+        msg.reply_text(locale("shield_24h", "shi", userid=from_user.id), reply_markup=activeKeyboard(userid=from_user.id))
+
+    else:
+
+        msg.reply_text(locale("already_active", "msg", userid=from_user.id))
+
+@app.on_message(~ filters.scheduled & filters.command(locale("shield_3d", "btn", userid="all"), prefixes=""))
+def shield_3d(app, msg):
+
+    from_user = msg.from_user
+
+    app.send_chat_action(chat_id=msg.chat.id, action="typing")
+
+    if not userGet(from_user.id, "active"):
+
+        userSet(from_user.id, "active", True)
+
+        shieldSet(from_user.id, 3*24*60*60)
+
+        msg.reply_text(locale("shield_3d", "shi", userid=from_user.id), reply_markup=activeKeyboard(userid=from_user.id))
+
+    else:
+
+        msg.reply_text(locale("already_active", "msg", userid=from_user.id))
+
+@app.on_message(~ filters.scheduled & filters.command(locale("shield_7d", "btn", userid="all"), prefixes=""))
+def shield_7d(app, msg):
+
+    from_user = msg.from_user
+
+    app.send_chat_action(chat_id=msg.chat.id, action="typing")
+
+    if not userGet(from_user.id, "active"):
+
+        userSet(from_user.id, "active", True)
+
+        shieldSet(from_user.id, 7*24*60*60)
+
+        msg.reply_text(locale("shield_7d", "shi", userid=from_user.id), reply_markup=activeKeyboard(userid=from_user.id))
+
+    else:
+
+        msg.reply_text(locale("already_active", "msg", userid=from_user.id))
+
+@app.on_message(~ filters.scheduled & filters.command(locale("shield_14d", "btn", userid="all"), prefixes=""))
+def shield_14d(app, msg):
+
+    from_user = msg.from_user
+
+    app.send_chat_action(chat_id=msg.chat.id, action="typing")
+
+    if not userGet(from_user.id, "active"):
+
+        userSet(from_user.id, "active", True)
+
+        shieldSet(from_user.id, 14*24*60*60)
+
+        msg.reply_text(locale("shield_14d", "shi", userid=from_user.id), reply_markup=activeKeyboard(userid=from_user.id))
+
+    else:
+
+        msg.reply_text(locale("already_active", "msg", userid=from_user.id))
 
 #===========================================================================================================================
 
-@app.on_message(~ filters.scheduled & filters.command(locale("shield_reset", "btn", userid="all"), prefixes=""))
+@app.on_message(~ filters.scheduled & filters.command(locale("shield_reset", "btn", userid="all")+["reset"], prefixes=["", "/"]))
 def shield_reset(app, msg):
 
     from_user = msg.from_user
@@ -83,17 +307,17 @@ def shield_reset(app, msg):
 
     if userGet(from_user.id, "active"):
 
-        userSet(from_user.id, "active", False)
+        reminderReset(from_user.id)
 
-        msg.reply_text("Reset", reply_markup=defaultKeyboard(userid=from_user.id))
+        msg.reply_text(locale("reset", "msg", userid=from_user.id), reply_markup=defaultKeyboard(userid=from_user.id))
     
     else:
 
-        msg.reply_text("No active shield")
+        msg.reply_text(locale("no_shield", "msg", userid=from_user.id))
 
 #===========================================================================================================================
 
-@app.on_message(~ filters.scheduled & filters.command(locale("shield_duration", "btn", userid="all"), prefixes=""))
+@app.on_message(~ filters.scheduled & filters.command(locale("shield_duration", "btn", userid="all")+["duration"], prefixes=["", "/"]))
 def shield_duration(app, msg):
 
     from_user = msg.from_user
@@ -102,11 +326,17 @@ def shield_duration(app, msg):
 
     if userGet(from_user.id, "active"):
 
-        msg.reply_text("Duration: ...")
+        msg.reply_text(locale("remain", "msg", userid=from_user.id).format( strfdelta(userGet(from_user.id, "shield")-nowStamp(), locale("remain_format", "msg", userid=from_user.id), inputtype="seconds") ))
     
     else:
 
-        msg.reply_text("No active shield")
+        msg.reply_text(locale("no_shield", "msg", userid=from_user.id))
+
+@app.on_message(~ filters.scheduled & filters.command("shield", prefixes=["", "/"]))
+def shield_activate(app, msg):
+    from_user = msg.from_user
+    app.send_chat_action(chat_id=msg.chat.id, action="typing")
+    msg.reply_text("Not ready yet")
 
 #===========================================================================================================================
 
@@ -122,6 +352,15 @@ if __name__ == "__main__":
     print(f'[{getDateTime(time.time())}] Starting with PID {str(pid)}')
 
     os.makedirs("data/users", exist_ok = True)
+
+    if not os.path.exists("data/shields.json"):
+        Path("data/shields.json").write_text("{}", encoding="utf-8")
+
+    if not os.path.exists("data/reminders.json"):
+        Path("data/reminders.json").write_text("{}", encoding="utf-8")
+
+    if not os.path.exists("data/reminders_index.json"):
+        Path("data/reminders_index.json").write_text("{}", encoding="utf-8")
 
     def background_task():
         global pid

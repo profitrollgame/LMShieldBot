@@ -4,5 +4,5 @@ __pycache__
 config.json
 config.ini
 loop.sh
-LordsMobile_Shield_Bot.session
-LordsMobile_Shield_Bot.session-journal
+*.session
+*.session-journal

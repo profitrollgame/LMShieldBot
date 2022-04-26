@@ -12,7 +12,26 @@
         },
         "msg": {
             "start": "Hi, **{0}**!\n\nUse keyboard shown to you if you want to set your active shield time.\n\nYou can also use /shield command to set non-standart time in format `/shield DAYS HOURS MINUTES`.",
-            "translation": "🔤 You can also enjoy the bot in other languages. There's Ukrainian language that out bot is already 100% supported and translated into.\n\nTo change the language simply type /locale and then language code. For example, `/locale ua` for Ukrainian or `/locale en` for English."
+            "translation": "🔤 You can also enjoy the bot in other languages. There's Ukrainian language that out bot is already 100% supported and translated into.\n\nTo change the language simply type /locale and then language code. For example, `/locale uk` for Ukrainian or `/locale en` for English.",
+            "expired": "⚠ Your shield expired!\nYou can activate new one using keyboard shown.",
+            "expiring": "⚠ Shield expires soon!\n{0} until expiration.",
+            "expiring_format": "{D}d {H}h {M}m",
+            "remain": "Shield's duration:\n{0}",
+            "remain_format": "{D}d {H}h {M}m",
+            "reset": "⚠ Active shield reset!\nYou can activate new one using keyboard shown.",
+            "no_shield": "⚠ You have no active shield!\nYou can activate it using keyboard shown.",
+            "already_active": "⚠ Shield already active\nYou can get its duration by command /duration or using your interaction keyboard.",
+            "locale_set": "Selected locale: English",
+            "locale_wrong": "Locale does not exist!\nAvailable codes: {0}",
+            "locale_syntax": "Syntax incorrect!\nUsage: `/locale CODE`"
+        },
+        "shi": {
+            "shield_4h": "Shield set for 4 hours",
+            "shield_8h": "Shield set for 8 hours",
+            "shield_24h": "Shield set for 24 hours",
+            "shield_3d": "Shield set for 3 days",
+            "shield_7d": "Shield set for 7 days",
+            "shield_14d": "Shield set for 14 days"
         }
     },
     "uk": {
@@ -28,7 +47,26 @@
         },
         "msg": {
             "start": "Привіт, **{0}**!\n\nВикористовуйте показану вам клавіатуру, якщо ви хочете встановити активний час щита.\n\nВи також можете використовувати команду /shield, щоб встановити нестандартний час у форматі `/shield ДНІ ГОДИНИ ХВИЛИНИ`.",
-            "translation": "🔤 Ви можете користуватися ботом на інших мовах. Також є англійська мова, яку наш бот вже на 100% підтримує та перекладений.\n\nЩоб змінити мову, просто введіть /locale, а потім код мови. Наприклад, `/locale ua` для української або `/locale en` для англійської."
+            "translation": "🔤 Ви можете користуватися ботом на інших мовах. Також є англійська мова, яку наш бот вже на 100% підтримує та перекладений.\n\nЩоб змінити мову, просто введіть /locale, а потім код мови. Наприклад, `/locale uk` для української або `/locale en` для англійської.",
+            "expired": "⚠ Строк дії щита закінчився!\nВи можете активувати новий користуючись клавіатурою.",
+            "expiring": "⚠ Строк дії щита закінчується!\n{0} до закінчення.",
+            "expiring_format": "{D} дн. {H} год. {M} хв.",
+            "remain": "Тривалість щита:\n{0}",
+            "remain_format": "{D} дн. {H} год. {M} хв.",
+            "reset": "⚠ Активний щит скинуто!\nВи можете активувати новий користуючись клавіатурою.",
+            "no_shield": "⚠ Немає активного щита!\nВи можете активувати його користуючись клавіатурою.",
+            "already_active": "⚠ У вас вже є щит!\nСкільки часу він ще буде активним можна дізнатись за командою /duration або користуючись клавіатурою.",
+            "locale_set": "Обрано мову: Українська",
+            "locale_wrong": "Мова не існує!\nДоступні коди: {0}",
+            "locale_syntax": "Неправильний синтаксис!\nВикористання: `/locale КОД`"
+        },
+        "shi": {
+            "shield_4h": "Активовано щит на 4 години",
+            "shield_8h": "Активовано щит на 8 годин",
+            "shield_24h": "Активовано щит на 24 години",
+            "shield_3d": "Активовано щит на 3 дні",
+            "shield_7d": "Активовано щит на 7 днів",
+            "shield_14d": "Активовано щит на 14 днів"
         }
     }
 }
