@@ -20,6 +20,12 @@ from pyrogram.types import ChatPermissions, ReplyKeyboardMarkup, InlineKeyboardM
 pid = os.getpid()
 app = Client("LordsMobile_Shield_Bot")
 
+def remind_shields():
+
+    global app
+
+    
+
 #===========================================================================================================================
 
 @app.on_message(~ filters.scheduled & filters.command(["start", "help"], prefixes="/"))
@@ -29,7 +35,78 @@ def start(app, msg):
 
     app.send_chat_action(chat_id=msg.chat.id, action="typing")
 
-    msg.reply_text(locale("start", "msg").format(from_user.first_name), reply_markup=defaultKeyboard())
+    if f"{from_user.id}.json" not in os.listdir("data/users/"):
+        jsonSave(
+            f"data/users/{from_user.id}.json",
+            {"locale": None, "shield": None, "active": False}
+        )
+
+    if from_user.language_code in jsonLoad("strings.json"):
+        userSet(from_user.id, "locale", from_user.language_code)
+        send_msg = False
+    else:
+        send_msg = True
+        userSet(from_user.id, "locale", "en")
+
+    msg.reply_text(locale("start", "msg", userid=from_user.id).format(from_user.first_name), reply_markup=defaultKeyboard(userid=from_user.id))
+
+    if send_msg:
+        msg.reply_text(locale("translation", "msg", userid=from_user.id))
+
+#===========================================================================================================================
+
+@app.on_message(~ filters.scheduled & filters.command(locale("shield_4h", "btn", userid="all"), prefixes=""))
+def shield_4h(app, msg):
+
+    from_user = msg.from_user
+
+    app.send_chat_action(chat_id=msg.chat.id, action="typing")
+
+    if not userGet(from_user.id, "active"):
+
+        userSet(from_user.id, "active", True)
+
+        msg.reply_text("Henlo", reply_markup=activeKeyboard(userid=from_user.id))
+
+    else:
+
+        msg.reply_text("Shield already active")
+
+#===========================================================================================================================
+
+@app.on_message(~ filters.scheduled & filters.command(locale("shield_reset", "btn", userid="all"), prefixes=""))
+def shield_reset(app, msg):
+
+    from_user = msg.from_user
+
+    app.send_chat_action(chat_id=msg.chat.id, action="typing")
+
+    if userGet(from_user.id, "active"):
+
+        userSet(from_user.id, "active", False)
+
+        msg.reply_text("Reset", reply_markup=defaultKeyboard(userid=from_user.id))
+    
+    else:
+
+        msg.reply_text("No active shield")
+
+#===========================================================================================================================
+
+@app.on_message(~ filters.scheduled & filters.command(locale("shield_duration", "btn", userid="all"), prefixes=""))
+def shield_duration(app, msg):
+
+    from_user = msg.from_user
+
+    app.send_chat_action(chat_id=msg.chat.id, action="typing")
+
+    if userGet(from_user.id, "active"):
+
+        msg.reply_text("Duration: ...")
+    
+    else:
+
+        msg.reply_text("No active shield")
 
 #===========================================================================================================================
 
@@ -43,6 +120,8 @@ def kill(app, msg):
 if __name__ == "__main__":
 
     print(f'[{getDateTime(time.time())}] Starting with PID {str(pid)}')
+
+    os.makedirs("data/users", exist_ok = True)
 
     def background_task():
         global pid
@@ -64,8 +143,8 @@ if __name__ == "__main__":
     app.start()
     app.send_message(configGet("ownerid"), f"Starting bot with pid `{pid}`")
 
-    channels_thread = threading.Thread(target=fetch_channels, name="Channel Fetcher")
-    channels_thread.start()
+    reminders_thread = threading.Thread(target=remind_shields, name="Shields reminder")
+    reminders_thread.start()
 
     idle()
 

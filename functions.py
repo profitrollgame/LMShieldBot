@@ -12,24 +12,54 @@ def getDateTime(timestamp):
     return time.strftime("%H:%M:%S | %d.%m.%Y", time.localtime(int(timestamp)))
 
 
-def jsonSave(filename, value):
+def jsonSave(filename: str, value):
     with open(filename, 'w', encoding="utf-8") as f:
         json.dump(value, f, indent=4, ensure_ascii=False)
         f.close()
 
-def jsonLoad(filename):
+def jsonLoad(filename: str):
     with open(filename, 'r', encoding="utf-8") as f:
         value = json.load(f)
         f.close()
     return value
 
+def userSet(userid, key: str, value):
+    user = jsonLoad(f"data/users/{userid}.json")
+    user[key] = value
+    jsonSave(f"data/users/{userid}.json", user)
 
-def locale(key: str, *args: str):
-    strings = jsonLoad("strings.json")
-    string = strings
-    for dict_key in args:
-        string = string[dict_key]
-    return string[key]
+def userGet(userid, key: str):
+    try:
+        return jsonLoad(f"data/users/{userid}.json")[key]
+    except KeyError:
+        return None
+    except FileNotFoundError:
+        return None
+
+def locale(key: str, *args: str, userid=None):
+    locales = jsonLoad("strings.json")
+    if userid == "all":
+        outputs = []
+        for locale in locales:
+            strings = locales[locale]
+            string = strings
+            for dict_key in args:
+                string = string[dict_key]
+            outputs.append(string[key])
+        return outputs
+    else:
+        try:
+            if type(userGet(userid, "locale")) is str:
+                userlocale = userGet(userid, "locale")
+            else:
+                userlocale = "en"
+        except:
+            userlocale = "en"
+        strings = locales[userlocale]
+        string = strings
+        for dict_key in args:
+            string = string[dict_key]
+        return string[key]
 
 def configGet(key: str, *args: str):
     this_dict = jsonLoad("config.json")
@@ -48,12 +78,20 @@ def configRemove(key: str, value):
     config[key].remove(value)
     jsonSave("config.json", config)
 
-def defaultKeyboard():
+def defaultKeyboard(userid=None):
     return ReplyKeyboardMarkup(
         [
-            [locale("shield_4h", "btn"), locale("shield_8h", "btn"), locale("shield_24h", "btn")],
-            [locale("shield_3d", "btn"), locale("shield_7d", "btn"), locale("shield_14d", "btn")],
-            [locale("shield_reset", "btn")]
+            [locale("shield_4h", "btn", userid=userid), locale("shield_8h", "btn", userid=userid), locale("shield_24h", "btn", userid=userid)],
+            [locale("shield_3d", "btn", userid=userid), locale("shield_7d", "btn", userid=userid), locale("shield_14d", "btn", userid=userid)]
+        ],
+        resize_keyboard=True
+    )
+
+def activeKeyboard(userid=None):
+    return ReplyKeyboardMarkup(
+        [
+            [locale("shield_duration", "btn", userid=userid)],
+            [locale("shield_reset", "btn", userid=userid)]
         ],
         resize_keyboard=True
     )

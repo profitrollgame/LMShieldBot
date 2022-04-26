@@ -1,4 +1,7 @@
 .vscode
+data
+__pycache__
 config.json
 config.ini
 loop.sh
+LordsMobile_Shield_Bot.session

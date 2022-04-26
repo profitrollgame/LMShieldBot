@@ -1,14 +1,34 @@
 {
-    "btn": {
-        "shield_4h": "Shield 4h",
-        "shield_8h": "Shield 8h",
-        "shield_24h": "Shield 24h",
-        "shield_3d": "Shield 3d",
-        "shield_7d": "Shield 7d",
-        "shield_14d": "Shield 14d",
-        "shield_reset": "Reset active shield"
+    "en": {
+        "btn": {
+            "shield_4h": "Shield 4h",
+            "shield_8h": "Shield 8h",
+            "shield_24h": "Shield 24h",
+            "shield_3d": "Shield 3d",
+            "shield_7d": "Shield 7d",
+            "shield_14d": "Shield 14d",
+            "shield_duration": "Check shield's duration",
+            "shield_reset": "Reset active shield"
+        },
+        "msg": {
+            "start": "Hi, **{0}**!\n\nUse keyboard shown to you if you want to set your active shield time.\n\nYou can also use /shield command to set non-standart time in format `/shield DAYS HOURS MINUTES`.",
+            "translation": "🔤 You can also enjoy the bot in other languages. There's Ukrainian language that out bot is already 100% supported and translated into.\n\nTo change the language simply type /locale and then language code. For example, `/locale ua` for Ukrainian or `/locale en` for English."
+        }
     },
-    "msg": {
-        "start": "Hi, **{0}**!\n\nUse keyboard shown to you if you want to set your active shield time.\n\nYou can also use /shield command to set non-standart time in format `/shield DAYS HOURS MINUTES`."
+    "uk": {
+        "btn": {
+            "shield_4h": "Щит 4г",
+            "shield_8h": "Щит 8г",
+            "shield_24h": "Щит 24г",
+            "shield_3d": "Щит 3д",
+            "shield_7d": "Щит 7д",
+            "shield_14d": "Щит 14д",
+            "shield_duration": "Тривалість дії щита",
+            "shield_reset": "Скинути активний щит"
+        },
+        "msg": {
+            "start": "Привіт, **{0}**!\n\nВикористовуйте показану вам клавіатуру, якщо ви хочете встановити активний час щита.\n\nВи також можете використовувати команду /shield, щоб встановити нестандартний час у форматі `/shield ДНІ ГОДИНИ ХВИЛИНИ`.",
+            "translation": "🔤 Ви можете користуватися ботом на інших мовах. Також є англійська мова, яку наш бот вже на 100% підтримує та перекладений.\n\nЩоб змінити мову, просто введіть /locale, а потім код мови. Наприклад, `/locale ua` для української або `/locale en` для англійської."
+        }
     }
 }
