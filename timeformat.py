@@ -1,3 +1,5 @@
+# Code was taken from https://stackoverflow.com/a/42320260 by user MarredCheese
+
 from string import Formatter
 from datetime import timedelta
 
