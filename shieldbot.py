@@ -262,7 +262,7 @@ def kill(app, msg):
 
 if __name__ == "__main__":
 
-   appendLog(f'Starting with PID {str(pid)}')
+    appendLog(f'Starting with PID {str(pid)}')
 
     os.makedirs("data/users", exist_ok = True)
     os.makedirs("logs", exist_ok = True)

@@ -8,8 +8,8 @@ import json
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup
 
 
-def getDateTime(timestamp):
-    return time.strftime("%H:%M:%S | %d.%m.%Y", time.localtime(int(timestamp)))
+def getDateTime(ts):
+    return time.strftime("%H:%M:%S | %d.%m.%Y", time.localtime(int(ts)))
 
 
 def jsonSave(filename: str, value):
@@ -147,10 +147,10 @@ def appendLog(message):
             print('Log file could not be created')
             return
             
-    log.write(f'[{getDateTime(datetime.now().timestamp)}] {message}\n')
+    log.write(f'[{getDateTime(datetime.now().timestamp())}] {message}\n')
     log.close()
-    
-    print(f'[{getDateTime(datetime.now().timestamp)}] {message}\n')
+
+    print(f'[{getDateTime(datetime.now().timestamp())}] {message}\n')
 
 
 def gotExp(app, traceback, exc_info, exp, funcname, command="No command", userstr=["Unknown", 000]):
