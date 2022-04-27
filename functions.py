@@ -149,6 +149,8 @@ def appendLog(message):
             
     log.write(f'[{getDateTime(datetime.now().timestamp)}] {message}\n')
     log.close()
+    
+    print(f'[{getDateTime(datetime.now().timestamp)}] {message}\n')
 
 
 def gotExp(app, traceback, exc_info, exp, funcname, command="No command", userstr=["Unknown", 000]):
