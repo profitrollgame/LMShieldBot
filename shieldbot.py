@@ -247,7 +247,6 @@ def shield_duration(app, msg):
 
 @app.on_message(~ filters.scheduled & filters.command("shield", prefixes=["", "/"]))
 def shield_activate(app, msg):
-    from_user = msg.from_user
     app.send_chat_action(chat_id=msg.chat.id, action="typing")
     msg.reply_text("Not ready yet")
 
@@ -257,7 +256,8 @@ def shield_activate(app, msg):
 def kill(app, msg):
 
     if msg.from_user.id == configGet("ownerid"):
-        msg.reply_text(f"Shutting down bot with pid `{pid}`")
+        appendLog(f'Shutting down with PID {pid}')
+        msg.reply_text(f"Shutting down with pid `{pid}`")
         os.system('kill -9 '+str(pid))
 
 if __name__ == "__main__":
@@ -276,32 +276,15 @@ if __name__ == "__main__":
     if not os.path.exists("data/reminders_index.json"):
         Path("data/reminders_index.json").write_text("{}", encoding="utf-8")
 
-    def background_task():
-        global pid
-        try:
-            while True:
-                try:
-                    schedule.run_pending()
-                    time.sleep(1)
-                except:
-                    pass
-
-        except KeyboardInterrupt:
-            appendLog(f'Shutting down with PID {pid}')
-            os.system('kill -9 '+str(pid))
-
-    t = threading.Thread(target=background_task)
-    t.start()
-
     app.start()
-    app.send_message(configGet("ownerid"), f"Starting bot with pid `{pid}`")
+    app.send_message(configGet("ownerid"), f"Starting with pid `{pid}`")
 
     reminders_thread = threading.Thread(target=remind_shields, name="Shields reminder")
     reminders_thread.start()
 
     idle()
 
-    app.send_message(configGet("ownerid"), f"Shutting down bot with pid `{pid}`")
+    app.send_message(configGet("ownerid"), f"Shutting down with pid `{pid}`")
     appendLog(f'Shutting down with PID {pid}')
 
     subprocess.call(f'kill -9 {pid}', shell=True)

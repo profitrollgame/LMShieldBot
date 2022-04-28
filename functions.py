@@ -3,7 +3,7 @@ import gzip
 import os
 import shutil
 import time
-import json
+import ujson
 
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup
 
@@ -14,12 +14,12 @@ def getDateTime(ts):
 
 def jsonSave(filename: str, value):
     with open(filename, 'w', encoding="utf-8") as f:
-        json.dump(value, f, indent=4, ensure_ascii=False)
+        ujson.dump(value, f, indent=4, ensure_ascii=False)
         f.close()
 
 def jsonLoad(filename: str):
     with open(filename, 'r', encoding="utf-8") as f:
-        value = json.load(f)
+        value = ujson.load(f)
         f.close()
     return value
 
@@ -150,7 +150,7 @@ def appendLog(message):
     log.write(f'[{getDateTime(datetime.now().timestamp())}] {message}\n')
     log.close()
 
-    print(f'[{getDateTime(datetime.now().timestamp())}] {message}\n')
+    print(f'[{getDateTime(datetime.now().timestamp())}] {message}')
 
 
 def gotExp(app, traceback, exc_info, exp, funcname, command="No command", userstr=["Unknown", 000]):

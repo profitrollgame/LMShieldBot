@@ -1,3 +1,9 @@
+### Requirements
+* Python3.7+
+* Pyrogram
+* TgCrypto
+* ujson
+
 ### Quickstart
 1. `git clone https://github.com/profitrollgame/LMShieldBot`
 2. `cd ./LMShieldBot`
