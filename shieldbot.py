@@ -11,7 +11,6 @@ import _thread
 import threading
 import subprocess
 import traceback
-import schedule
 
 from telegram import ForceReply
 from functions import *
@@ -86,13 +85,8 @@ def remind_shields():
     while True:
 
         shields = jsonLoad("data/shields.json")
-        #shields_original = jsonLoad("data/shields.json")
-
         reminders = jsonLoad("data/reminders.json")
-        #reminders_original = jsonLoad("data/reminders.json")
-
         reminders_index = jsonLoad("data/reminders_index.json")
-        #reminders_index_original = jsonLoad("data/reminders_index.json")
 
         now_time = nowStamp()
 
@@ -109,13 +103,9 @@ def remind_shields():
                 jsonSave("data/reminders.json", reminders)
                 jsonSave("data/reminders_index.json", reminders)
         
-        # if reminders != reminders_original:
-        #     jsonSave("data/reminders.json", reminders)
+        if configGet("debug"):
+            print(now_time)
 
-        # if reminders_index != reminders_index_original:
-        #     jsonSave("data/reminders_index.json", reminders)
-        
-        #print(now_time)
         time.sleep(1)
 
 def shieldSet(userid, intime):
@@ -129,6 +119,16 @@ def shieldSet(userid, intime):
         shields[str(nowStamp()+intime)] = []
     shields[str(nowStamp()+intime)].append(userid)
     jsonSave("data/shields.json", shields)
+
+def shieldStart(app, msg, shieldtime):
+    app.send_chat_action(chat_id=msg.chat.id, action="typing")
+    if not userGet(msg.from_user.id, "active"):
+        userSet(msg.from_user.id, "active", True)
+        shieldSet(msg.from_user.id, shieldtime)
+        msg.reply_text(locale("shield_4h", "shi", userid=msg.from_user.id), reply_markup=activeKeyboard(userid=msg.from_user.id))
+    else:
+        msg.reply_text(locale("already_active", "msg", userid=msg.from_user.id))
+    appendLog("Started shield for {0} (user {1})".format(strfdelta(shieldtime, "{D}d {H}h {M}m", inputtype="seconds"), msg.from_user.id))
 
 #===========================================================================================================================
 
@@ -153,6 +153,7 @@ def start(app, msg):
         userSet(from_user.id, "locale", "en")
 
     msg.reply_text(locale("start", "msg", userid=from_user.id).format(from_user.first_name), reply_markup=defaultKeyboard(userid=from_user.id))
+    appendLog(f"Start command called (user {from_user.id})")
 
     if send_msg:
         msg.reply_text(locale("translation", "msg", userid=from_user.id))
@@ -170,6 +171,7 @@ def locale_set(app, msg):
                 msg.reply_text(locale("locale_set", "msg", userid=from_user.id), reply_markup=activeKeyboard(userid=from_user.id))
             else:
                 msg.reply_text(locale("locale_set", "msg", userid=from_user.id), reply_markup=defaultKeyboard(userid=from_user.id))
+            appendLog(f"Locale {fullcmd[1]} is now set as primary (user {from_user.id})")
         else:
             locale_list = []
             locales = jsonLoad("strings.json")
@@ -184,117 +186,27 @@ def locale_set(app, msg):
 
 @app.on_message(~ filters.scheduled & filters.command(locale("shield_4h", "btn", userid="all"), prefixes=""))
 def shield_4h(app, msg):
-
-    from_user = msg.from_user
-
-    app.send_chat_action(chat_id=msg.chat.id, action="typing")
-
-    if not userGet(from_user.id, "active"):
-
-        userSet(from_user.id, "active", True)
-
-        shieldSet(from_user.id, 4*60*60)
-
-        msg.reply_text(locale("shield_4h", "shi", userid=from_user.id), reply_markup=activeKeyboard(userid=from_user.id))
-
-    else:
-
-        msg.reply_text(locale("already_active", "msg", userid=from_user.id))
+    shieldStart(app, msg, 4*60*60)
 
 @app.on_message(~ filters.scheduled & filters.command(locale("shield_8h", "btn", userid="all"), prefixes=""))
 def shield_8h(app, msg):
-
-    from_user = msg.from_user
-
-    app.send_chat_action(chat_id=msg.chat.id, action="typing")
-
-    if not userGet(from_user.id, "active"):
-
-        userSet(from_user.id, "active", True)
-
-        shieldSet(from_user.id, 8*60*60)
-
-        msg.reply_text(locale("shield_8h", "shi", userid=from_user.id), reply_markup=activeKeyboard(userid=from_user.id))
-
-    else:
-
-        msg.reply_text(locale("already_active", "msg", userid=from_user.id))
+    shieldStart(app, msg,  8*60*60)
 
 @app.on_message(~ filters.scheduled & filters.command(locale("shield_24h", "btn", userid="all"), prefixes=""))
 def shield_24h(app, msg):
-
-    from_user = msg.from_user
-
-    app.send_chat_action(chat_id=msg.chat.id, action="typing")
-
-    if not userGet(from_user.id, "active"):
-
-        userSet(from_user.id, "active", True)
-
-        shieldSet(from_user.id, 24*60*60)
-
-        msg.reply_text(locale("shield_24h", "shi", userid=from_user.id), reply_markup=activeKeyboard(userid=from_user.id))
-
-    else:
-
-        msg.reply_text(locale("already_active", "msg", userid=from_user.id))
+    shieldStart(app, msg, 24*60*60)
 
 @app.on_message(~ filters.scheduled & filters.command(locale("shield_3d", "btn", userid="all"), prefixes=""))
 def shield_3d(app, msg):
-
-    from_user = msg.from_user
-
-    app.send_chat_action(chat_id=msg.chat.id, action="typing")
-
-    if not userGet(from_user.id, "active"):
-
-        userSet(from_user.id, "active", True)
-
-        shieldSet(from_user.id, 3*24*60*60)
-
-        msg.reply_text(locale("shield_3d", "shi", userid=from_user.id), reply_markup=activeKeyboard(userid=from_user.id))
-
-    else:
-
-        msg.reply_text(locale("already_active", "msg", userid=from_user.id))
+    shieldStart(app, msg, 3*24*60*60)
 
 @app.on_message(~ filters.scheduled & filters.command(locale("shield_7d", "btn", userid="all"), prefixes=""))
 def shield_7d(app, msg):
-
-    from_user = msg.from_user
-
-    app.send_chat_action(chat_id=msg.chat.id, action="typing")
-
-    if not userGet(from_user.id, "active"):
-
-        userSet(from_user.id, "active", True)
-
-        shieldSet(from_user.id, 7*24*60*60)
-
-        msg.reply_text(locale("shield_7d", "shi", userid=from_user.id), reply_markup=activeKeyboard(userid=from_user.id))
-
-    else:
-
-        msg.reply_text(locale("already_active", "msg", userid=from_user.id))
+    shieldStart(app, msg, 7*24*60*60)
 
 @app.on_message(~ filters.scheduled & filters.command(locale("shield_14d", "btn", userid="all"), prefixes=""))
 def shield_14d(app, msg):
-
-    from_user = msg.from_user
-
-    app.send_chat_action(chat_id=msg.chat.id, action="typing")
-
-    if not userGet(from_user.id, "active"):
-
-        userSet(from_user.id, "active", True)
-
-        shieldSet(from_user.id, 14*24*60*60)
-
-        msg.reply_text(locale("shield_14d", "shi", userid=from_user.id), reply_markup=activeKeyboard(userid=from_user.id))
-
-    else:
-
-        msg.reply_text(locale("already_active", "msg", userid=from_user.id))
+    shieldStart(app, msg, 14*24*60*60)
 
 #===========================================================================================================================
 
@@ -308,8 +220,8 @@ def shield_reset(app, msg):
     if userGet(from_user.id, "active"):
 
         reminderReset(from_user.id)
-
         msg.reply_text(locale("reset", "msg", userid=from_user.id), reply_markup=defaultKeyboard(userid=from_user.id))
+        appendLog(f"Shield has been reset (user {from_user.id})")
     
     else:
 
@@ -327,6 +239,7 @@ def shield_duration(app, msg):
     if userGet(from_user.id, "active"):
 
         msg.reply_text(locale("remain", "msg", userid=from_user.id).format( strfdelta(userGet(from_user.id, "shield")-nowStamp(), locale("remain_format", "msg", userid=from_user.id), inputtype="seconds") ))
+        appendLog(f"Sent how long shield remains (user {from_user.id})")
     
     else:
 
@@ -334,7 +247,6 @@ def shield_duration(app, msg):
 
 @app.on_message(~ filters.scheduled & filters.command("shield", prefixes=["", "/"]))
 def shield_activate(app, msg):
-    from_user = msg.from_user
     app.send_chat_action(chat_id=msg.chat.id, action="typing")
     msg.reply_text("Not ready yet")
 
@@ -344,14 +256,16 @@ def shield_activate(app, msg):
 def kill(app, msg):
 
     if msg.from_user.id == configGet("ownerid"):
-        msg.reply_text(f"Shutting down bot with pid `{pid}`")
+        appendLog(f'Shutting down with PID {pid}')
+        msg.reply_text(f"Shutting down with pid `{pid}`")
         os.system('kill -9 '+str(pid))
 
 if __name__ == "__main__":
 
-    print(f'[{getDateTime(time.time())}] Starting with PID {str(pid)}')
+    appendLog(f'Starting with PID {str(pid)}')
 
     os.makedirs("data/users", exist_ok = True)
+    os.makedirs("logs", exist_ok = True)
 
     if not os.path.exists("data/shields.json"):
         Path("data/shields.json").write_text("{}", encoding="utf-8")
@@ -362,32 +276,15 @@ if __name__ == "__main__":
     if not os.path.exists("data/reminders_index.json"):
         Path("data/reminders_index.json").write_text("{}", encoding="utf-8")
 
-    def background_task():
-        global pid
-        try:
-            while True:
-                try:
-                    schedule.run_pending()
-                    time.sleep(1)
-                except:
-                    pass
-
-        except KeyboardInterrupt:
-            print('\nShutting down')
-            os.system('kill -9 '+str(pid))
-
-    t = threading.Thread(target=background_task)
-    t.start()
-
     app.start()
-    app.send_message(configGet("ownerid"), f"Starting bot with pid `{pid}`")
+    app.send_message(configGet("ownerid"), f"Starting with pid `{pid}`")
 
     reminders_thread = threading.Thread(target=remind_shields, name="Shields reminder")
     reminders_thread.start()
 
     idle()
 
-    app.send_message(configGet("ownerid"), f"Shutting down bot with pid `{pid}`")
-    print(f'\n[{getDateTime(time.time())}] Shutting down with PID {pid}')
+    app.send_message(configGet("ownerid"), f"Shutting down with pid `{pid}`")
+    appendLog(f'Shutting down with PID {pid}')
 
     subprocess.call(f'kill -9 {pid}', shell=True)

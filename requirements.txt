@@ -1,2 +1,3 @@
 pyrogram >= 1.2.11
 tgcrypto
+ujson
